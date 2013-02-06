@@ -1,11 +1,13 @@
 package com.theladders.solid.srp;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.theladders.solid.srp.http.HttpRequest;
 import com.theladders.solid.srp.http.HttpResponse;
@@ -16,11 +18,11 @@ import com.theladders.solid.srp.job.JobSearchService;
 import com.theladders.solid.srp.job.application.JobApplicationRepository;
 import com.theladders.solid.srp.job.application.JobApplicationSystem;
 import com.theladders.solid.srp.job.application.SuccessfulApplication;
+import com.theladders.solid.srp.jobseeker.Jobseeker;
 import com.theladders.solid.srp.jobseeker.JobseekerProfile;
 import com.theladders.solid.srp.jobseeker.JobseekerProfileManager;
 import com.theladders.solid.srp.jobseeker.JobseekerProfileRepository;
 import com.theladders.solid.srp.jobseeker.ProfileStatus;
-import com.theladders.solid.srp.jobseeker.Jobseeker;
 import com.theladders.solid.srp.resume.ActiveResumeRepository;
 import com.theladders.solid.srp.resume.MyResumeManager;
 import com.theladders.solid.srp.resume.Resume;
@@ -29,11 +31,11 @@ import com.theladders.solid.srp.resume.ResumeRepository;
 
 public class TestIt
 {
-  private static final int INVALID_JOB_ID        = 555;
-  private static final String SHARED_RESUME_NAME = "A Resume";
-  private static final int JOBSEEKER_WITH_RESUME = 777;
-  private static final int INCOMPLETE_JOBSEEKER  = 888;
-  private static final int APPROVED_JOBSEEKER    = 1010;
+  private static final int           INVALID_JOB_ID        = 555;
+  private static final String        SHARED_RESUME_NAME    = "A Resume";
+  private static final int           JOBSEEKER_WITH_RESUME = 777;
+  private static final int           INCOMPLETE_JOBSEEKER  = 888;
+  private static final int           APPROVED_JOBSEEKER    = 1010;
 
   private ApplyController            controller;
   private JobRepository              jobRepository;
@@ -44,169 +46,124 @@ public class TestIt
 
   private SuccessfulApplication      existingApplication;
 
+  private int                        jobseekerId;
+  private HttpSession                session;
+  private final HttpResponse         response              = new HttpResponse();
+  private final Map<String, String>  parameters            = new HashMap<>();
+
+
   @Test
   public void requestWithValidJob()
   {
-    Jobseeker JOBSEEKER = new Jobseeker(APPROVED_JOBSEEKER, true);
-    HttpSession session = new HttpSession(JOBSEEKER);
+    givenApprovedPremiumJobseeker();
+    givenValidJobIdParameter();
 
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put("jobId","5");
+    whenHandlingRequestWithResumeName(SHARED_RESUME_NAME);
 
-    HttpRequest request = new HttpRequest(session, parameters);
-
-    HttpResponse response = new HttpResponse();
-
-    controller.handle(request, response, SHARED_RESUME_NAME);
-
-    assertEquals("success", response.getResultType());
+    thenTheResponseIsSuccessful();
   }
+
 
   @Test
   public void requestWithValidJobByBasic()
   {
-    Jobseeker JOBSEEKER = new Jobseeker(APPROVED_JOBSEEKER, false);
-    HttpSession session = new HttpSession(JOBSEEKER);
+    givenApprovedBasicJobseeker();
+    givenValidJobIdParameter();
 
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put("jobId","5");
+    whenHandlingRequestWithResumeName(SHARED_RESUME_NAME);
 
-    HttpRequest request = new HttpRequest(session, parameters);
-
-    HttpResponse response = new HttpResponse();
-
-    controller.handle(request, response, SHARED_RESUME_NAME);
-
-    assertEquals("success", response.getResultType());
+    thenTheResponseIsSuccessful();
   }
+
 
   @Test
   public void applyUsingExistingResume()
   {
-    Jobseeker JOBSEEKER = new Jobseeker(JOBSEEKER_WITH_RESUME, true);
-    HttpSession session = new HttpSession(JOBSEEKER);
+    givenPremiumJobseekerWithResume();
+    givenValidJobIdParameter();
+    givenExistingResumeParameter();
 
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put("jobId","5");
-    parameters.put("whichResume", "existing");
+    whenHandlingRequestWithResumeName(SHARED_RESUME_NAME);
 
-    HttpRequest request = new HttpRequest(session, parameters);
-
-    HttpResponse response = new HttpResponse();
-
-    controller.handle(request, response, SHARED_RESUME_NAME);
-
-    assertEquals("success", response.getResultType());
+    thenTheResponseIsSuccessful();
   }
+
 
   @Test
   public void requestWithInvalidJob()
   {
-    Jobseeker JOBSEEKER = new Jobseeker(APPROVED_JOBSEEKER, true);
-    HttpSession session = new HttpSession(JOBSEEKER);
+    givenApprovedPremiumJobseeker();
+    givenInvalidJobIdParameter();
 
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put("jobId", String.valueOf(INVALID_JOB_ID));
+    whenHandlingRequestWithResumeName(SHARED_RESUME_NAME);
 
-    HttpRequest request = new HttpRequest(session, parameters);
-
-    HttpResponse response = new HttpResponse();
-
-    controller.handle(request, response, SHARED_RESUME_NAME);
-
-    assertEquals("invalidJob", response.getResultType());
+    thenResponseIsInvalidJob();
   }
+
 
   @Test
   public void requestWithNoResume()
   {
-    Jobseeker JOBSEEKER = new Jobseeker(APPROVED_JOBSEEKER, true);
-    HttpSession session = new HttpSession(JOBSEEKER);
+    givenApprovedPremiumJobseeker();
+    givenValidJobIdParameter();
 
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put("jobId", "5");
+    whenHandlingRequestWithResumeName(null);
 
-    HttpRequest request = new HttpRequest(session, parameters);
-
-    HttpResponse response = new HttpResponse();
-
-    controller.handle(request, response, null);
-
-    assertEquals("error", response.getResultType());
+    thenResponseIsError();
   }
+
 
   @Test
   public void reapplyToJob()
   {
-    Jobseeker JOBSEEKER = new Jobseeker(APPROVED_JOBSEEKER, true);
-    HttpSession session = new HttpSession(JOBSEEKER);
+    givenApprovedPremiumJobseeker();
 
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put("jobId","15");
+    givenPreviouslyAppliedJobIdParameter();
 
-    HttpRequest request = new HttpRequest(session, parameters);
+    whenHandlingRequestWithResumeName(SHARED_RESUME_NAME);
 
-    HttpResponse response = new HttpResponse();
-
-    controller.handle(request, response, SHARED_RESUME_NAME);
-
-    assertEquals("error", response.getResultType());
+    thenResponseIsError();
   }
+
 
   @Test
   public void unapprovedBasic()
   {
-    Jobseeker JOBSEEKER = new Jobseeker(INCOMPLETE_JOBSEEKER, false);
-    HttpSession session = new HttpSession(JOBSEEKER);
+    givenAnIncompleteBasicJobseeker();
 
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put("jobId","5");
+    givenValidJobIdParameter();
 
-    HttpRequest request = new HttpRequest(session, parameters);
+    whenHandlingRequestWithResumeName(SHARED_RESUME_NAME);
 
-    HttpResponse response = new HttpResponse();
-
-    controller.handle(request, response, SHARED_RESUME_NAME);
-
-    assertEquals("completeResumePlease", response.getResultType());
+    thenTheResponseIsPleaseCompleteResume();
   }
+
 
   @Test
   public void resumeIsSaved()
   {
-    Jobseeker JOBSEEKER = new Jobseeker(APPROVED_JOBSEEKER, true);
-    HttpSession session = new HttpSession(JOBSEEKER);
+    givenApprovedPremiumJobseeker();
 
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put("jobId","5");
+    givenValidJobIdParameter();
 
-    HttpRequest request = new HttpRequest(session, parameters);
+    whenHandlingRequestWithResumeName(SHARED_RESUME_NAME);
 
-    HttpResponse response = new HttpResponse();
-
-    controller.handle(request, response, SHARED_RESUME_NAME);
-
-    assertTrue(resumeRepository.contains(new Resume(SHARED_RESUME_NAME)));
+    thenResumeRepositoryContains(SHARED_RESUME_NAME);
   }
+
 
   @Test
   public void resumeIsMadeActive()
   {
-    Jobseeker JOBSEEKER = new Jobseeker(APPROVED_JOBSEEKER, true);
-    HttpSession session = new HttpSession(JOBSEEKER);
+    givenApprovedPremiumJobseeker();
+    givenValidJobIdParameter();
+    givenMakeResumeActiveParameter("yes");
 
-    Map<String, String> parameters = new HashMap<>();
-    parameters.put("jobId","5");
-    parameters.put("makeResumeActive", "yes");
+    whenHandlingRequestWithResumeName("Save Me Seymour");
 
-    HttpRequest request = new HttpRequest(session, parameters);
-
-    HttpResponse response = new HttpResponse();
-
-    controller.handle(request, response, "Save Me Seymour");
-
-    assertEquals(new Resume("Save Me Seymour"), activeResumeRepository.activeResumeFor(APPROVED_JOBSEEKER));
+    thenActiveResumeNameIs("Save Me Seymour");
   }
+
 
   @Before
   public void setup()
@@ -219,6 +176,117 @@ public class TestIt
     setupController();
   }
 
+
+  private void givenApprovedPremiumJobseeker()
+  {
+    Jobseeker JOBSEEKER = givenJobseeker(APPROVED_JOBSEEKER, true);
+    session = new HttpSession(JOBSEEKER);
+  }
+
+
+  private void givenApprovedBasicJobseeker()
+  {
+    Jobseeker JOBSEEKER = givenJobseeker(APPROVED_JOBSEEKER, false);
+    session = new HttpSession(JOBSEEKER);
+  }
+
+
+  private void givenPremiumJobseekerWithResume()
+  {
+    Jobseeker JOBSEEKER = givenJobseeker(JOBSEEKER_WITH_RESUME, true);
+    session = new HttpSession(JOBSEEKER);
+  }
+
+
+  private void givenAnIncompleteBasicJobseeker()
+  {
+    Jobseeker JOBSEEKER = givenJobseeker(INCOMPLETE_JOBSEEKER, false);
+    session = new HttpSession(JOBSEEKER);
+  }
+
+
+  private Jobseeker givenJobseeker(int id,
+                                   boolean isPremium)
+  {
+    jobseekerId = id;
+    return new Jobseeker(id, isPremium);
+  }
+
+
+  private void givenValidJobIdParameter()
+  {
+    parameters.put("jobId", "5");
+  }
+
+
+  private void givenInvalidJobIdParameter()
+  {
+    parameters.put("jobId", String.valueOf(INVALID_JOB_ID));
+  }
+
+
+  private void givenPreviouslyAppliedJobIdParameter()
+  {
+    parameters.put("jobId", "15");
+  }
+
+
+  private void givenExistingResumeParameter()
+  {
+    parameters.put("whichResume", "existing");
+  }
+
+
+  private void givenMakeResumeActiveParameter(String value)
+  {
+    parameters.put("makeResumeActive", value);
+  }
+
+
+  private void whenHandlingRequestWithResumeName(String fileName)
+  {
+    HttpRequest request = new HttpRequest(session, parameters);
+
+    controller.handle(request, response, fileName);
+  }
+
+
+  private void thenTheResponseIsSuccessful()
+  {
+    assertEquals("success", response.getResultType());
+  }
+
+
+  private void thenResponseIsInvalidJob()
+  {
+    assertEquals("invalidJob", response.getResultType());
+  }
+
+
+  private void thenResponseIsError()
+  {
+    assertEquals("error", response.getResultType());
+  }
+
+
+  private void thenTheResponseIsPleaseCompleteResume()
+  {
+    assertEquals("completeResumePlease", response.getResultType());
+  }
+
+
+  private void thenActiveResumeNameIs(String name)
+  {
+    assertEquals(new Resume(name), activeResumeRepository.activeResumeFor(jobseekerId));
+  }
+
+
+  private void thenResumeRepositoryContains(String resumeName)
+  {
+    assertTrue(resumeRepository.contains(new Resume(resumeName)));
+  }
+
+
   private void setupJobseekerProfileRepository()
   {
     jobseekerProfileRepository = new JobseekerProfileRepository();
@@ -228,11 +296,14 @@ public class TestIt
     addToJobseekerProfileRepository(JOBSEEKER_WITH_RESUME, ProfileStatus.APPROVED);
   }
 
-  private void addToJobseekerProfileRepository(int id, ProfileStatus status)
+
+  private void addToJobseekerProfileRepository(int id,
+                                               ProfileStatus status)
   {
     JobseekerProfile profile = new JobseekerProfile(id, status);
     jobseekerProfileRepository.addProfile(profile);
   }
+
 
   private void setupJobRepository()
   {
@@ -248,6 +319,7 @@ public class TestIt
     addJobToRepository(50111);
   }
 
+
   private void addJobToRepository(int jobId)
   {
     if (jobId != INVALID_JOB_ID)
@@ -256,10 +328,12 @@ public class TestIt
     }
   }
 
+
   private void setupResumeRepository()
   {
     resumeRepository = new ResumeRepository();
   }
+
 
   private void setupActiveResumeRepository()
   {
@@ -268,12 +342,14 @@ public class TestIt
     activeResumeRepository.makeActive(JOBSEEKER_WITH_RESUME, new Resume("Blammo"));
   }
 
+
   private void setupJobApplicationRepository()
   {
     jobApplicationRepository = new JobApplicationRepository();
 
     addToJobApplicationRepository();
   }
+
 
   private void addToJobApplicationRepository()
   {
@@ -286,6 +362,7 @@ public class TestIt
     jobApplicationRepository.add(existingApplication);
   }
 
+
   private void setupController()
   {
     JobseekerProfileManager jobseekerProfileManager = new JobseekerProfileManager(jobseekerProfileRepository);
@@ -294,10 +371,6 @@ public class TestIt
     ResumeManager resumeManager = new ResumeManager(resumeRepository);
     MyResumeManager myResumeManager = new MyResumeManager(activeResumeRepository);
 
-    controller = new ApplyController(jobseekerProfileManager,
-                                     jobSearchService,
-                                     jobApplicationSystem,
-                                     resumeManager,
-                                     myResumeManager);
+    controller = new ApplyController(jobseekerProfileManager, jobSearchService, jobApplicationSystem, resumeManager, myResumeManager);
   }
 }
