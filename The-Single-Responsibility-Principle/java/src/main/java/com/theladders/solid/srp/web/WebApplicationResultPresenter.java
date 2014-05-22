@@ -1,5 +1,6 @@
 package com.theladders.solid.srp.web;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +22,10 @@ public class WebApplicationResultPresenter implements ApplicationResultPresenter
   }
 
   @Override
-  public Result applicationFailed(List<String> errList)
+  public Result applicationFailed()
   {
+    List<String> errList = new ArrayList<>();
+    errList.add("We could not process your application.");
     return new Result("error", Collections.<String, Object> emptyMap(), errList);
   }
 

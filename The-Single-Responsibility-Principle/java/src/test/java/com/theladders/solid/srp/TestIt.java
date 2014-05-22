@@ -9,6 +9,7 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.theladders.solid.srp.apply.ApplicationResumeManager;
 import com.theladders.solid.srp.apply.ApplyWorkflow;
 import com.theladders.solid.srp.http.HttpRequest;
 import com.theladders.solid.srp.http.HttpResponse;
@@ -379,11 +380,11 @@ public class TestIt
     ResumeManager resumeManager = new ResumeManager(resumeRepository);
     MyResumeManager myResumeManager = new MyResumeManager(activeResumeRepository);
 
+    ApplicationResumeManager applicationResumeManager = new ApplicationResumeManager(resumeManager, myResumeManager);
     ApplyWorkflow applyWorkflow = new ApplyWorkflow(jobseekerProfileManager,
                                                     jobSearchService,
                                                     jobApplicationSystem,
-                                                    resumeManager,
-                                                    myResumeManager);
+                                                    applicationResumeManager);
     controller = new ApplyController(applyWorkflow);
   }
 }
