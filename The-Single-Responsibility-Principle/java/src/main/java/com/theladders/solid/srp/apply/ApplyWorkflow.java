@@ -1,9 +1,7 @@
 package com.theladders.solid.srp.apply;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.theladders.solid.srp.job.Job;
 import com.theladders.solid.srp.job.JobSearchService;
@@ -54,8 +52,6 @@ public class ApplyWorkflow
       return presenter.invalidJob(jobId);
     }
 
-    Map<String, Object> model = new HashMap<>();
-
     List<String> errList = new ArrayList<>();
 
     try
@@ -67,9 +63,6 @@ public class ApplyWorkflow
       errList.add("We could not process your application.");
       return presenter.applicationFailed(errList);
     }
-
-    model.put("jobId", job.getJobId());
-    model.put("jobTitle", job.getTitle());
 
     if (needsToCompleteResume(jobseeker, profile))
     {
