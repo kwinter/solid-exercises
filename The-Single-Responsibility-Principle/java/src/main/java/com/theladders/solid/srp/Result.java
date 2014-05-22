@@ -36,4 +36,14 @@ public class Result
   {
     return "Result [type=" + type + ", model=" + model + ", errorList=" + errorList + "]";
   }
+
+  public Object get(String key)
+  {
+    return model.get(key);
+  }
+
+  public boolean isEmpty()
+  {
+    return model.isEmpty();
+  }
 }

@@ -15,4 +15,14 @@ public class HttpResponse
   {
     this.result = result;
   }
+
+  public Object getValueFor(String key)
+  {
+    return result.get(key);
+  }
+
+  public boolean modelIsEmpty()
+  {
+    return result.isEmpty();
+  }
 }

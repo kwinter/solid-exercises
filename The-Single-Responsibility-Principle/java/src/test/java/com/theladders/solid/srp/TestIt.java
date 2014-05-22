@@ -31,6 +31,7 @@ import com.theladders.solid.srp.resume.ResumeRepository;
 
 public class TestIt
 {
+  private static final int           VALID_JOB_ID       = 5;
   private static final int           INVALID_JOB_ID     = 555;
   private static final String        SHARED_RESUME_NAME = "A Resume";
   private static final int           WITH_RESUME        = 777;
@@ -214,7 +215,7 @@ public class TestIt
 
   private void givenValidJobIdParameter()
   {
-    parameters.put("jobId", "5");
+    parameters.put("jobId", String.valueOf(VALID_JOB_ID));
   }
 
 
@@ -253,24 +254,30 @@ public class TestIt
   private void thenTheResponseIsSuccessful()
   {
     assertEquals("success", response.getResultType());
+    assertEquals(VALID_JOB_ID, response.getValueFor("jobId"));
+    assertEquals("This is a job with id:" + VALID_JOB_ID, response.getValueFor("jobTitle"));
   }
 
 
   private void thenResponseIsInvalidJob()
   {
     assertEquals("invalidJob", response.getResultType());
+    assertEquals(INVALID_JOB_ID, response.getValueFor("jobId"));
   }
 
 
   private void thenResponseIsError()
   {
     assertEquals("error", response.getResultType());
+    assertTrue(response.modelIsEmpty());
   }
 
 
   private void thenTheResponseIsPleaseCompleteResume()
   {
     assertEquals("completeResumePlease", response.getResultType());
+    assertEquals(VALID_JOB_ID, response.getValueFor("jobId"));
+    assertEquals("This is a job with id:" + VALID_JOB_ID, response.getValueFor("jobTitle"));
   }
 
 
