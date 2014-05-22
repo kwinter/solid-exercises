@@ -37,12 +37,13 @@ public class ApplyWorkflow
                      boolean makeResumeActive,
                      ApplicationResultPresenter<T> presenter)
   {
-    JobseekerProfile profile = jobseekerProfileManager.getJobSeekerProfile(jobseeker);
     Job job = jobSearchService.getJob(jobId);
     if (job == null)
     {
       return presenter.invalidJob(jobId);
     }
+
+    JobseekerProfile profile = jobseekerProfileManager.getJobSeekerProfile(jobseeker);
 
     try
     {
@@ -70,8 +71,13 @@ public class ApplyWorkflow
   {
     Resume resume = saveNewOrRetrieveExistingResume(fileName, jobseeker, useNewResume, makeResumeActive);
     UnprocessedApplication application = new UnprocessedApplication(jobseeker, job, resume);
-    JobApplicationResult applicationResult = jobApplicationSystem.apply(application);
 
+    process(application);
+  }
+
+  private void process(UnprocessedApplication application)
+  {
+    JobApplicationResult applicationResult = jobApplicationSystem.apply(application);
     if (applicationResult.failure())
     {
       throw new ApplicationFailureException(applicationResult.toString());
