@@ -25,4 +25,9 @@ public class HttpResponse
   {
     return result.isEmpty();
   }
+
+  public String firstError()
+  {
+    return result.firstError();
+  }
 }

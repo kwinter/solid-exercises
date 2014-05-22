@@ -271,6 +271,7 @@ public class TestIt
   {
     assertEquals("error", response.getResultType());
     assertTrue(response.modelIsEmpty());
+    assertEquals("We could not process your application.", response.firstError());
   }
 
 

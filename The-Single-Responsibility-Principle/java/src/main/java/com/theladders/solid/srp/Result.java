@@ -46,4 +46,9 @@ public class Result
   {
     return model.isEmpty();
   }
+
+  public String firstError()
+  {
+    return errorList.get(0);
+  }
 }
