@@ -42,18 +42,16 @@ public class ApplyWorkflow
       return presenter.invalidJob(jobId);
     }
 
-    JobseekerProfile profile = jobseekerProfileManager.getJobSeekerProfile(jobseeker);
-
     try
     {
-      apply(jobseeker, job, selectedResume);
+      apply(job, jobseeker, selectedResume);
     }
     catch (Exception e)
     {
       return presenter.applicationFailed();
     }
 
-    if (needsToCompleteResume(jobseeker, profile))
+    if (needsToCompleteResume(jobseeker))
     {
       return presenter.needsToCompleteResume(jobId, job.getTitle());
     }
@@ -61,8 +59,8 @@ public class ApplyWorkflow
     return presenter.success(jobId, job.getTitle());
   }
 
-  private void apply(Jobseeker jobseeker,
-                     Job job,
+  private void apply(Job job,
+                     Jobseeker jobseeker,
                      SelectedResume selectedResume)
   {
     Resume resume = saveNewOrRetrieveExistingResume(jobseeker, selectedResume);
@@ -89,9 +87,9 @@ public class ApplyWorkflow
                                                                     selectedResume.makeResumeActive);
   }
 
-  private boolean needsToCompleteResume(Jobseeker jobseeker,
-                                        JobseekerProfile profile)
+  private boolean needsToCompleteResume(Jobseeker jobseeker)
   {
+    JobseekerProfile profile = jobseekerProfileManager.getJobSeekerProfile(jobseeker);
     return !jobseeker.isPremium() && (profile.getStatus().equals(ProfileStatus.INCOMPLETE) || profile.getStatus()
                                                                                                      .equals(ProfileStatus.NO_PROFILE) || profile.getStatus()
                                                                                                                                                  .equals(ProfileStatus.REMOVED));
