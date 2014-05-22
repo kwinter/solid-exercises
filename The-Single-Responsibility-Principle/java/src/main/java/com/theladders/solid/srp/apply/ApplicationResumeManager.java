@@ -40,28 +40,4 @@ public class ApplicationResumeManager
     }
     return resume;
   }
-
-  public Resume saveNewOrRetrieveExistingResume(Jobseeker jobseeker,
-                                                String newResumeFileName,
-                                                boolean useNewResume,
-                                                boolean makeResumeActive)
-  {
-    Resume resume;
-
-    if (useNewResume)
-    {
-      resume = resumeManager.saveResume(jobseeker, newResumeFileName);
-
-      if (resume != null && makeResumeActive)
-      {
-        myResumeManager.saveAsActive(jobseeker, resume);
-      }
-    }
-    else
-    {
-      resume = myResumeManager.getActiveResume(jobseeker.getId());
-    }
-
-    return resume;
-  }
 }

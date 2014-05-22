@@ -81,10 +81,7 @@ public class ApplyWorkflow
   private Resume saveNewOrRetrieveExistingResume(Jobseeker jobseeker,
                                                  SelectedResume selectedResume)
   {
-    return applicationResumeManager.saveNewOrRetrieveExistingResume(jobseeker,
-                                                                    selectedResume.origFileName,
-                                                                    selectedResume.useNewResume,
-                                                                    selectedResume.makeResumeActive);
+    return applicationResumeManager.saveNewOrRetrieveExistingResume(jobseeker, selectedResume);
   }
 
   private boolean needsToCompleteResume(Jobseeker jobseeker)
