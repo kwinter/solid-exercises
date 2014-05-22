@@ -11,12 +11,13 @@ import com.theladders.solid.srp.jobseeker.JobseekerProfile;
 import com.theladders.solid.srp.jobseeker.JobseekerProfileManager;
 import com.theladders.solid.srp.jobseeker.ProfileStatus;
 import com.theladders.solid.srp.resume.Resume;
+import com.theladders.solid.srp.resume.SelectedResume;
 
 public class ApplyWorkflow
 {
-  private final JobseekerProfileManager jobseekerProfileManager;
-  private final JobSearchService        jobSearchService;
-  private final JobApplicationSystem    jobApplicationSystem;
+  private final JobseekerProfileManager  jobseekerProfileManager;
+  private final JobSearchService         jobSearchService;
+  private final JobApplicationSystem     jobApplicationSystem;
   private final ApplicationResumeManager applicationResumeManager;
 
   public ApplyWorkflow(JobseekerProfileManager jobseekerProfileManager,
@@ -30,11 +31,9 @@ public class ApplyWorkflow
     this.applicationResumeManager = applicationResumeManager;
   }
 
-  public <T> T apply(String origFileName,
+  public <T> T apply(int jobId,
                      Jobseeker jobseeker,
-                     int jobId,
-                     boolean useNewResume,
-                     boolean makeResumeActive,
+                     SelectedResume selectedResume,
                      ApplicationResultPresenter<T> presenter)
   {
     Job job = jobSearchService.getJob(jobId);
@@ -47,7 +46,7 @@ public class ApplyWorkflow
 
     try
     {
-      apply(jobseeker, job, origFileName, useNewResume, makeResumeActive);
+      apply(jobseeker, job, selectedResume);
     }
     catch (Exception e)
     {
@@ -62,14 +61,11 @@ public class ApplyWorkflow
     return presenter.success(jobId, job.getTitle());
   }
 
-
   private void apply(Jobseeker jobseeker,
                      Job job,
-                     String fileName,
-                     boolean useNewResume,
-                     boolean makeResumeActive)
+                     SelectedResume selectedResume)
   {
-    Resume resume = saveNewOrRetrieveExistingResume(fileName, jobseeker, useNewResume, makeResumeActive);
+    Resume resume = saveNewOrRetrieveExistingResume(jobseeker, selectedResume);
     UnprocessedApplication application = new UnprocessedApplication(jobseeker, job, resume);
 
     process(application);
@@ -84,16 +80,13 @@ public class ApplyWorkflow
     }
   }
 
-
-  private Resume saveNewOrRetrieveExistingResume(String newResumeFileName,
-                                                 Jobseeker jobseeker,
-                                                 boolean useNewResume,
-                                                 boolean makeResumeActive)
+  private Resume saveNewOrRetrieveExistingResume(Jobseeker jobseeker,
+                                                 SelectedResume selectedResume)
   {
-    return applicationResumeManager.saveNewOrRetrieveExistingResume(newResumeFileName,
+    return applicationResumeManager.saveNewOrRetrieveExistingResume(selectedResume.origFileName,
                                                                     jobseeker,
-                                                                    useNewResume,
-                                                                    makeResumeActive);
+                                                                    selectedResume.useNewResume,
+                                                                    selectedResume.makeResumeActive);
   }
 
   private boolean needsToCompleteResume(Jobseeker jobseeker,
