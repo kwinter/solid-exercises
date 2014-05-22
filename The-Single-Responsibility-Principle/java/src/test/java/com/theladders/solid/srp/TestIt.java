@@ -31,11 +31,13 @@ import com.theladders.solid.srp.resume.ResumeRepository;
 
 public class TestIt
 {
-  private static final int           INVALID_JOB_ID        = 555;
-  private static final String        SHARED_RESUME_NAME    = "A Resume";
-  private static final int           JOBSEEKER_WITH_RESUME = 777;
-  private static final int           INCOMPLETE_JOBSEEKER  = 888;
-  private static final int           APPROVED_JOBSEEKER    = 1010;
+  private static final int           INVALID_JOB_ID     = 555;
+  private static final String        SHARED_RESUME_NAME = "A Resume";
+  private static final int           WITH_RESUME        = 777;
+  private static final int           INCOMPLETE         = 888;
+  private static final int           APPROVED           = 1010;
+  private static final boolean       PREMIUM            = true;
+  private static final boolean       BASIC              = false;
 
   private ApplyController            controller;
   private JobRepository              jobRepository;
@@ -48,8 +50,8 @@ public class TestIt
 
   private int                        jobseekerId;
   private HttpSession                session;
-  private final HttpResponse         response              = new HttpResponse();
-  private final Map<String, String>  parameters            = new HashMap<>();
+  private final HttpResponse         response           = new HttpResponse();
+  private final Map<String, String>  parameters         = new HashMap<>();
 
 
   @Test
@@ -179,37 +181,34 @@ public class TestIt
 
   private void givenApprovedPremiumJobseeker()
   {
-    Jobseeker JOBSEEKER = givenJobseeker(APPROVED_JOBSEEKER, true);
-    session = new HttpSession(JOBSEEKER);
+    givenJobseeker(PREMIUM, APPROVED);
   }
 
 
   private void givenApprovedBasicJobseeker()
   {
-    Jobseeker JOBSEEKER = givenJobseeker(APPROVED_JOBSEEKER, false);
-    session = new HttpSession(JOBSEEKER);
+    givenJobseeker(BASIC, APPROVED);
   }
 
 
   private void givenPremiumJobseekerWithResume()
   {
-    Jobseeker JOBSEEKER = givenJobseeker(JOBSEEKER_WITH_RESUME, true);
-    session = new HttpSession(JOBSEEKER);
+    givenJobseeker(PREMIUM, WITH_RESUME);
   }
 
 
   private void givenAnIncompleteBasicJobseeker()
   {
-    Jobseeker JOBSEEKER = givenJobseeker(INCOMPLETE_JOBSEEKER, false);
-    session = new HttpSession(JOBSEEKER);
+    givenJobseeker(BASIC, INCOMPLETE);
   }
 
 
-  private Jobseeker givenJobseeker(int id,
-                                   boolean isPremium)
+  private void givenJobseeker(boolean isPremium,
+                              int id)
   {
     jobseekerId = id;
-    return new Jobseeker(id, isPremium);
+    Jobseeker jobseeker = new Jobseeker(id, isPremium);
+    session = new HttpSession(jobseeker);
   }
 
 
@@ -291,9 +290,9 @@ public class TestIt
   {
     jobseekerProfileRepository = new JobseekerProfileRepository();
 
-    addToJobseekerProfileRepository(APPROVED_JOBSEEKER, ProfileStatus.APPROVED);
-    addToJobseekerProfileRepository(INCOMPLETE_JOBSEEKER, ProfileStatus.INCOMPLETE);
-    addToJobseekerProfileRepository(JOBSEEKER_WITH_RESUME, ProfileStatus.APPROVED);
+    addToJobseekerProfileRepository(APPROVED, ProfileStatus.APPROVED);
+    addToJobseekerProfileRepository(INCOMPLETE, ProfileStatus.INCOMPLETE);
+    addToJobseekerProfileRepository(WITH_RESUME, ProfileStatus.APPROVED);
   }
 
 
@@ -339,7 +338,7 @@ public class TestIt
   {
     activeResumeRepository = new ActiveResumeRepository();
 
-    activeResumeRepository.makeActive(JOBSEEKER_WITH_RESUME, new Resume("Blammo"));
+    activeResumeRepository.makeActive(WITH_RESUME, new Resume("Blammo"));
   }
 
 
@@ -353,7 +352,7 @@ public class TestIt
 
   private void addToJobApplicationRepository()
   {
-    Jobseeker JOBSEEKER = new Jobseeker(APPROVED_JOBSEEKER, true);
+    Jobseeker JOBSEEKER = new Jobseeker(APPROVED, true);
     Job job = new Job(15);
     Resume resume = new Resume("foo");
 
