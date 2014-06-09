@@ -47,9 +47,9 @@ public class DynamicEnvironment extends Environment implements SeedableEnvironme
   }
 
   public void append(Object key,
-                     String value)
+                     Object value)
   {
-    put(key, get(key) + value);
+    put(key, get(key) + value.toString());
   }
 
   @Override
@@ -59,6 +59,14 @@ public class DynamicEnvironment extends Environment implements SeedableEnvironme
     put(toKey, get(fromKey));
   }
 
+  @Override
+  public void copyAndAppend(Object fromKey,
+                            Object toKey,
+                            Object toAppend)
+  {
+    copy(fromKey, toKey);
+    append(toKey, toAppend);
+  }
   private void put(Object key,
                    Object value)
   {

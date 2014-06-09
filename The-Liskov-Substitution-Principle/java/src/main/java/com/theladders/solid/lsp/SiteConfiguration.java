@@ -92,7 +92,8 @@ public class SiteConfiguration
     environment.copy("secureHome", SECURE_GUEST_SITE_HOME);
     environment.copy("home", FALCON_SITE_HOME);
     environment.copy("secureHome", SECURE_FALCON_SITE_HOME);
-    environment.copy("home", MEMBER_SITE_HOME);
-    environment.copy("secureHome", SECURE_MEMBER_SITE_HOME);
+
+    environment.copyAndAppend("home", MEMBER_SITE_HOME, MEMBER_PATH_PREFIX);
+    environment.copyAndAppend("secureHome", SECURE_MEMBER_SITE_HOME, MEMBER_PATH_PREFIX);
   }
 }
