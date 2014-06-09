@@ -1,7 +1,7 @@
 package com.theladders.solid.lsp;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -12,8 +12,9 @@ import java.util.Set;
  * @author Zhi-Da Zhong &lt;zz@theladders.com&gt;
  */
 
-public class DynamicEnvironment extends Environment
+public class DynamicEnvironment extends Environment implements SeedableEnvironment
 {
+  private final Map<Object, Object> overrides = new HashMap<Object, Object>();
   private final Environment         base;
   private final Map<String, String> keyMap; // map insecure prop names to secure ones
 
@@ -23,13 +24,6 @@ public class DynamicEnvironment extends Environment
     this.keyMap = propKeyMap;
   }
 
-  @Override
-  public Collection<Object> values()
-  {
-    // TODO remove masked values
-    // TODO join local instance values
-    return base.values();
-  }
 
   /**
    * This method uses a mapped version of the given key to access first its own Map then its
@@ -44,7 +38,7 @@ public class DynamicEnvironment extends Environment
   public Object get(Object key)
   {
     String realKey = keyMap.get(key);
-    Object value = super.get(realKey != null ? realKey : key);
+    Object value = overrides.get(realKey != null ? realKey : key);
     if (value == null)
     {
       return base.get(realKey != null ? realKey : key);
@@ -52,20 +46,37 @@ public class DynamicEnvironment extends Environment
     return value;
   }
 
+  public void append(Object key,
+                     String value)
+  {
+    put(key, get(key) + value);
+  }
+
+  @Override
+  public void copy(Object fromKey,
+                   Object toKey)
+  {
+    put(toKey, get(fromKey));
+  }
+
+  private void put(Object key,
+                   Object value)
+  {
+    overrides.put(key, value);
+  }
+
   @Override
   public Set<Map.Entry<Object, Object>> entrySet()
   {
-    Set<Map.Entry<Object, Object>> entrySet = new HashSet<>(super.entrySet());
+    Set<Map.Entry<Object, Object>> entrySet = new HashSet<>(overrides.entrySet());
     entrySet.addAll(base.entrySet());
     return Collections.unmodifiableSet(entrySet);
   }
 
   @Override
-  public Set<Object> keySet()
+  public String toString()
   {
-    Set<Object> keySet = new HashSet<>(super.keySet());
-    keySet.addAll(keyMap.keySet());
-    keySet.addAll(base.keySet());
-    return Collections.unmodifiableSet(keySet);
+    return entrySet().toString();
   }
+
 }

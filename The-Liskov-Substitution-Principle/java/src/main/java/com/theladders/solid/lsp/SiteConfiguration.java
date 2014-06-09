@@ -86,13 +86,13 @@ public class SiteConfiguration
    *          The current environment (for legacy compatibility)
    */
 
-  public void seedEnvironment(Environment environment)
+  public void seedEnvironment(SeedableEnvironment environment)
   {
-    environment.put(GUEST_SITE_HOME, environment.get("home"));
-    environment.put(SECURE_GUEST_SITE_HOME, environment.get("secureHome"));
-    environment.put(FALCON_SITE_HOME, environment.get("home"));
-    environment.put(SECURE_FALCON_SITE_HOME, environment.get("secureHome"));
-    environment.put(MEMBER_SITE_HOME, environment.get("home") + MEMBER_PATH_PREFIX);
-    environment.put(SECURE_MEMBER_SITE_HOME, environment.get("secureHome") + MEMBER_PATH_PREFIX);
+    environment.copy("home", GUEST_SITE_HOME);
+    environment.copy("secureHome", SECURE_GUEST_SITE_HOME);
+    environment.copy("home", FALCON_SITE_HOME);
+    environment.copy("secureHome", SECURE_FALCON_SITE_HOME);
+    environment.copy("home", MEMBER_SITE_HOME);
+    environment.copy("secureHome", SECURE_MEMBER_SITE_HOME);
   }
 }

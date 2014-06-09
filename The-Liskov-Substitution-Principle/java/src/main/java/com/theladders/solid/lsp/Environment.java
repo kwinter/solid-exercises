@@ -1,22 +1,18 @@
 package com.theladders.solid.lsp;
 
-import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Set;
 
-public class Environment extends HashMap<Object, Object>
+
+public abstract class Environment
 {
   public static final String KEY_EMAIL_DOMAIN = "emaildomain";
-
-  public Environment()
-  {
-    super();
-  }
 
   /**
    * Convenience method that returns the admin email address for this ladder.
    *
    * @return email address or "" if either the user or domain is not defined
    */
-
   public String getAdminEmail()
   {
     String user = getString("admin");
@@ -30,4 +26,9 @@ public class Environment extends HashMap<Object, Object>
     Object val = get(key);
     return (val != null) ? val.toString().trim() : "";
   }
+
+  public abstract Object get(Object key);
+
+  public abstract Set<Entry<Object, Object>> entrySet();
+
 }

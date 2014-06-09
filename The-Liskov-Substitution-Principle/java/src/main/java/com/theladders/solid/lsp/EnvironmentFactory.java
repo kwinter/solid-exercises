@@ -6,7 +6,7 @@ public class EnvironmentFactory
 {
   public static Environment getEnvironmentFor(String hostName)
   {
-    Environment env = new Environment();
+    BasicEnvironment env = new BasicEnvironment();
 
     env.put("isSSL", "true");
     env.put("home", "http://" + hostName);
